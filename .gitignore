@@ -4,6 +4,8 @@ target/
 !**/src/test/**/target/
 .kotlin
 
+src/main/java/ru/gltexture/BotSecret.java
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

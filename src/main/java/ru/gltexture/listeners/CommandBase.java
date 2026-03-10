@@ -13,6 +13,7 @@ import ru.gltexture.BotApplication;
 import ru.gltexture.db.HashUtil;
 import ru.gltexture.db.RequestRepository;
 import ru.gltexture.db.UserRepository;
+import ru.gltexture.ocr.OCRService;
 import ru.gltexture.utils.Pair;
 
 import java.util.*;
@@ -134,12 +135,20 @@ public class CommandBase {
                         }
                         long userId = UserRepository.getOrCreateUser(chatId);
                         String hash = HashUtil.sha256(imageBytes);
+
+                        // Пытаемся найти уже распознанный текст в БД по хэшу изображения
                         String cached = RequestRepository.findByHash(hash);
-                        if (cached != null) {
-                            CommandBase.sendMessage(chatId, Bot.instance.getBotApplication(), "Cached OCR result:\n\n" + cached);
+                        if (cached != null && !cached.isBlank()) {
+                            CommandBase.sendMessage(chatId, Bot.instance.getBotApplication(), "OCR Result:\n\n" + cached);
                             return;
                         }
-                        String text = "TEST"; // OCRService.recognize(imageBytes)
+
+                        // Выполняем OCR прямо сейчас через локально установленный tesseract
+                        String text = OCRService.recognize(imageBytes);
+                        if (text == null || text.isBlank()) {
+                            text = "[пусто / ничего не распознано]";
+                        }
+
                         RequestRepository.saveRequest(userId, hash, imageBytes, text);
                         CommandBase.sendMessage(chatId, Bot.instance.getBotApplication(), "OCR Result:\n\n" + text);
                     } catch (Exception e) {

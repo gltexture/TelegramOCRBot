@@ -9,7 +9,7 @@ public class Database {
     private static final HikariDataSource ds;
     static {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://localhost:5432/postgres");
+        config.setJdbcUrl("jdbc:postgresql://localhost:5432/telegram_ocr_test");
         config.setUsername("postgres");
         config.setPassword("admin");
         config.setMaximumPoolSize(10);

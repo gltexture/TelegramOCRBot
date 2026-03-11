@@ -93,7 +93,7 @@ public class BotApplication extends TelegramLongPollingBot {
                     String command = update.getCallbackQuery().getData();
                     Long chatId = update.getCallbackQuery().getMessage().getChatId();
 
-                    if (!CommandBase.checkIfCanExecCommand(new MainListener.MessageData(chatId, this))) {
+                    if (CommandBase.checkIfCanExecCommand(new MainListener.MessageData(chatId, this))) {
                         CommandBase.onEndCommand(new MainListener.MessageData(chatId, this));
                     }
 

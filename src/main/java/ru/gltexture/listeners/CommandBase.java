@@ -51,11 +51,11 @@ public class CommandBase {
 
         int j = 0;
         for (Map.Entry<String, MainListener.CommandInfo> entry : commands.entrySet()) {
-            if (!entry.getValue().isShowInMenu()) {
+            if (!entry.getValue().showInMenu()) {
                 continue;
             }
             String command = entry.getKey();
-            String description = entry.getValue().getDescription();
+            String description = entry.getValue().description();
 
             InlineKeyboardButton button = new InlineKeyboardButton();
             button.setText(description);
@@ -78,15 +78,15 @@ public class CommandBase {
     }
 
     public static boolean checkIfCanExecCommand(MainListener.MessageData messageData) {
-        CommandWaiting commandWaiting = CommandBase.getCommandWaiting(messageData.getChatId());
-        return commandWaiting == null;
+        CommandWaiting commandWaiting = CommandBase.getCommandWaiting(messageData.chatId());
+        return commandWaiting != null;
     }
 
     @CommandListener(value = "/exit", showOnMenu = false, description = "Exit Current Command")
     public static void onEndCommand(MainListener.MessageData messageData) {
         try {
-            if (CommandBase.commandWaitingMap.remove(messageData.getChatId()) != null) {
-                CommandBase.sendMessage(messageData.getChatId(), Bot.instance.getBotApplication(), "Cancelled the current thread! 🤖");
+            if (CommandBase.commandWaitingMap.remove(messageData.chatId()) != null) {
+                CommandBase.sendMessage(messageData.chatId(), Bot.instance.getBotApplication(), "Cancelled the current thread! 🤖");
             }
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
@@ -95,23 +95,50 @@ public class CommandBase {
 
     @CommandListener(value = "/start", showOnMenu = false, description = "Start 🔧")
     public static void onStart(MainListener.MessageData messageData) {
-        if (!CommandBase.checkIfCanExecCommand(messageData)) {
+        if (CommandBase.checkIfCanExecCommand(messageData)) {
             return;
         }
         try {
             InlineKeyboardMarkup keyboardMarkup = CommandBase.buildStandardMenu(messageData);
             SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(String.valueOf(messageData.getChatId()));
+            sendMessage.setChatId(String.valueOf(messageData.chatId()));
             sendMessage.setText("📱Commands Menu:");
             sendMessage.setReplyMarkup(keyboardMarkup);
-            messageData.getBotApplication().execute(sendMessage);
+            messageData.botApplication().execute(sendMessage);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
     }
 
     @CommandListener(value = "/help", showOnMenu = true, description = "Help")
-    public static void yandexAssistant(MainListener.MessageData messageData) {
+    public static void help(MainListener.MessageData messageData) {
+        if (CommandBase.checkIfCanExecCommand(messageData)) {
+            return;
+        }
+        try {
+            String text =
+                    "🤖 *OCR Bot*\n\n" +
+                            "Бот предназначен для распознавания рукописного текста на изображениях.\n\n" +
+                            "📋 *Как пользоваться:*\n" +
+                            "1. Отправьте изображение с рукописным текстом.\n" +
+                            "2. Бот обработает изображение.\n" +
+                            "3. Через несколько секунд вы получите распознанный текст.\n\n" +
+                            "⚙️ *Особенности:*\n" +
+                            "• Поддержка изображений (PNG, JPG)\n" +
+                            "• Кэширование результатов распознавания\n" +
+                            "• Быстрая обработка запросов\n\n" +
+                            "📌 *Команды:*\n" +
+                            "/start — открыть меню\n" +
+                            "/help — показать справку\n\n" +
+                            "ℹ️ Если отправить то же изображение повторно, бот вернёт результат из кэша.";
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(String.valueOf(messageData.chatId()));
+            sendMessage.setText(text);
+            sendMessage.setParseMode("Markdown");
+            messageData.botApplication().execute(sendMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @CommandListener(value = "/aiRead", showOnMenu = true, description = "AI Read")
@@ -119,13 +146,12 @@ public class CommandBase {
         CommandWaiting waiting = new CommandWaiting(
                 (cw) -> {
                     try {
-                        long chatId = messageData.getChatId();
+                        long chatId = messageData.chatId();
                         Object obj = cw.getExpectation(0);
-                        if (!(obj instanceof String)) {
+                        if (!(obj instanceof String base64)) {
                             CommandBase.sendMessage(chatId, Bot.instance.getBotApplication(), "❌ Please send a photo.");
                             return;
                         }
-                        String base64 = (String) obj;
                         byte[] imageBytes;
                         try {
                             imageBytes = Base64.getDecoder().decode(base64);
@@ -154,7 +180,7 @@ public class CommandBase {
                     } catch (Exception e) {
                         e.printStackTrace(System.err);
                         try {
-                            CommandBase.sendMessage(messageData.getChatId(), Bot.instance.getBotApplication(), "⚠ Error while processing image.");
+                            CommandBase.sendMessage(messageData.chatId(), Bot.instance.getBotApplication(), "⚠ Error while processing image.");
                         } catch (TelegramApiException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -163,16 +189,16 @@ public class CommandBase {
                 "/aiRead",
                 List.of("📷 Send photo with handwritten text"), 1
         );
-        CommandBase.putNewWait(messageData.getChatId(), waiting);
+        CommandBase.putNewWait(messageData.chatId(), waiting);
     }
 
     @CommandListener(value = "/history", showOnMenu = true, description = "History")
     public static void history(MainListener.MessageData messageData) {
-        long userId = UserRepository.getOrCreateUser(messageData.getChatId());
+        long userId = UserRepository.getOrCreateUser(messageData.chatId());
         List<String> history = RequestRepository.getHistory(userId);
         if (history.isEmpty()) {
             try {
-                CommandBase.sendMessage(messageData.getChatId(), Bot.instance.getBotApplication(), "History empty");
+                CommandBase.sendMessage(messageData.chatId(), Bot.instance.getBotApplication(), "History empty");
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
@@ -183,7 +209,7 @@ public class CommandBase {
             sb.append("• ").append(s).append("\n\n");
         }
         try {
-            CommandBase.sendMessage(messageData.getChatId(), Bot.instance.getBotApplication(), sb.toString());
+            CommandBase.sendMessage(messageData.chatId(), Bot.instance.getBotApplication(), sb.toString());
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
@@ -191,7 +217,7 @@ public class CommandBase {
 
     @CommandListener(value = "/menu", showOnMenu = false, description = "Menu 🔧")
     public static void onHelp(MainListener.MessageData messageData) {
-        if (!CommandBase.checkIfCanExecCommand(messageData)) {
+        if (CommandBase.checkIfCanExecCommand(messageData)) {
             return;
         }
         CommandBase.onStart(messageData);

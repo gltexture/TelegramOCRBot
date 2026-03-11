@@ -1,10 +1,6 @@
 package ru.gltexture.utils;
 
-import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
-import retrofit2.Call;
-import retrofit2.Response;
-import ru.gltexture.Bot;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -27,10 +23,10 @@ public class Utils {
         return s.startsWith("/");
     }
 
-    public static void writeLPCMtoWav(byte[] lpcmBytes, float sampleRate, int channels, String outputPath) throws IOException {
+    public static void writeLPCMtoWav(byte[] lPcmBytes, float sampleRate, int channels, String outputPath) throws IOException {
         AudioFormat format = new AudioFormat(sampleRate, 16, channels, true, false);
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(lpcmBytes);
-             AudioInputStream ais = new AudioInputStream(bais, format, lpcmBytes.length / (2L * channels))) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(lPcmBytes);
+             AudioInputStream ais = new AudioInputStream(bais, format, lPcmBytes.length / (2L * channels))) {
             AudioSystem.write(ais, AudioFileFormat.Type.WAVE, new File(outputPath));
         }
     }

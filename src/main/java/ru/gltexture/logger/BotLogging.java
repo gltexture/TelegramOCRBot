@@ -22,9 +22,10 @@ public class BotLogging {
         this.log.warn(message, objects);
     }
 
+    @SuppressWarnings("unused")
     public void bigWarn(String message, Object... objects) {
         this.log.error("****************************************");
-        this.log.error("* " + message, objects);
+        this.log.error("* {}", message, objects);
         this.log.error("****************************************");
     }
 

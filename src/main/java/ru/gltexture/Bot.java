@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.concurrent.Executors;
 
 public class Bot {
-    public static Bot instance = new Bot();
+    public static final Bot instance = new Bot();
     private final BotApplication botApplication;
     private final BotLogging botLogging;
 

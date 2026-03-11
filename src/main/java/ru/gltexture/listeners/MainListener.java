@@ -20,18 +20,18 @@ public class MainListener implements Listener {
     }
 
     public void handleMessage(MessageData messageData) throws TelegramApiException {
-        String command = Utils.getFirstWord(messageData.getFullMessage());
-        Bot.instance.getBotLogging().log("Received: " + messageData.getFullMessage());
+        String command = Utils.getFirstWord(messageData.fullMessage());
+        Bot.instance.getBotLogging().log("Received: " + messageData.fullMessage());
         if (!this.isCommandExists(command)) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(String.valueOf(messageData.chatId));
             sendMessage.setText(this.defaultMessage());
-            messageData.getBotApplication().execute(sendMessage);
+            messageData.botApplication().execute(sendMessage);
         } else {
             CommandInfo commandInfo = this.getAvailableCommands().get(command);
             if (commandInfo != null) {
-                Bot.instance.getBotLogging().log(command + " :Accepted: " + messageData.getFullMessage());
-                commandInfo.getConsumer().accept(messageData);
+                Bot.instance.getBotLogging().log(command + " :Accepted: " + messageData.fullMessage());
+                commandInfo.consumer().accept(messageData);
             } else {
                 Bot.instance.getBotLogging().warn(messageData + " - NULL CONSUMER!");
             }
@@ -78,57 +78,13 @@ public class MainListener implements Listener {
         return "Unknown message. /menu";
     }
 
-    public static class CommandInfo {
-        private final Consumer<MessageData> consumer;
-        private final boolean showInMenu;
-        private final String description;
-
-        public CommandInfo(Consumer<MessageData> consumer, boolean showInMenu, String description) {
-            this.consumer = consumer;
-            this.showInMenu = showInMenu;
-            this.description = description;
-        }
-
-        public Consumer<MessageData> getConsumer() {
-            return this.consumer;
-        }
-
-        public boolean isShowInMenu() {
-            return this.showInMenu;
-        }
-
-        public String getDescription() {
-            return description;
-        }
+    public record CommandInfo(Consumer<MessageData> consumer, boolean showInMenu, String description) {
     }
 
-    public static class MessageData {
-        private final long chatId;
-        private final BotApplication botApplication;
-        private final String fullMessage;
+    public record MessageData(long chatId, BotApplication botApplication, String fullMessage) {
+            public MessageData(long chatId, BotApplication botApplication) {
+                this(chatId, botApplication, "");
+            }
 
-        public MessageData(long chatId, BotApplication botApplication) {
-            this.chatId = chatId;
-            this.fullMessage = "";
-            this.botApplication = botApplication;
-        }
-
-        public MessageData(long chatId, BotApplication botApplication, String fullMessage) {
-            this.chatId = chatId;
-            this.fullMessage = fullMessage;
-            this.botApplication = botApplication;
-        }
-
-        public long getChatId() {
-            return this.chatId;
-        }
-
-        public BotApplication getBotApplication() {
-            return this.botApplication;
-        }
-
-        public String getFullMessage() {
-            return this.fullMessage;
-        }
     }
 }
